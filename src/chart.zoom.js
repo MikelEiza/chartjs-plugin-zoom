@@ -159,7 +159,7 @@ function zoomScale(scale, zoom, center, zoomOptions) {
 	}
 }
 
-function doZoom(chartInstance, zoom, center, whichAxes) {
+function doZoom(chartInstance, zoom, center, whichAxes, emit) {
 	var ca = chartInstance.chartArea;
 	if (!center) {
 		center = {
@@ -198,8 +198,8 @@ function doZoom(chartInstance, zoom, center, whichAxes) {
 
 		chartInstance.update(0);
 
-		if (typeof zoomOptions.onZoom === 'function') {
-			zoomOptions.onZoom();
+		if (emit && typeof zoomOptions.onZoom === 'function') {
+			zoomOptions.onZoom(zoom, center, whichAxes);
 		}
 	}
 }
@@ -342,6 +342,10 @@ var zoomPlugin = {
 			});
 
 			chartInstance.update();
+	};
+
+		chartInstance.doZoom = function(zoom, center, whichAxes, emit) {
+			doZoom(chartInstance, zoom, center, whichAxes, emit);
 		};
 
 	},
@@ -393,7 +397,7 @@ var zoomPlugin = {
 						doZoom(chartInstance, zoom, {
 							x: (dragDistance / 2) + startX,
 							y: (yAxis.bottom - yAxis.top) / 2,
-						});
+						}, undefined, true);
 					}
 				}
 			};
@@ -410,9 +414,9 @@ var zoomPlugin = {
 				};
 
 				if (event.deltaY < 0) {
-					doZoom(chartInstance, 1.1, center);
+					doZoom(chartInstance, 1.1, center, undefined, true);
 				} else {
-					doZoom(chartInstance, 0.909, center);
+					doZoom(chartInstance, 0.909, center, undefined, true);
 				}
 				// Prevent the event from triggering the default behavior (eg. Content scrolling).
 				event.preventDefault();
@@ -459,7 +463,7 @@ var zoomPlugin = {
 					xy = 'y';
 				}
 
-				doZoom(chartInstance, diff, center, xy);
+				doZoom(chartInstance, diff, center, xy, true);
 
 				// Keep track of overall scale
 				currentPinchScaling = e.scale;
